@@ -1,0 +1,44 @@
+<div id="wordPanel" class="mainPanel">
+    <!--Title-->
+    <div class="row">
+        <div class="col-sm-1">
+            <button type="button" id='back-to-home' class="btn btn-light" onclick="WordPanel.backOnclick()">&lt;</button>
+        </div>
+        <div class="col-sm-9">
+            <p id='word-head' class="h3">hello</p>
+        </div>
+        <div id="glossary-name" class="col-sm-1">
+            Book Name
+        </div>
+        <div class="col-sm-1">
+            <button type="button" class="btn btn-default btn-sm" onclick="WordPanel.addOrRemoveWordFromGlossary()">
+                <i id="glossary-star" class="bi-star-fill" style="font-size: 20px;color: rgb(255, 191, 0);"></i>
+            </button>
+        </div>
+    </div>
+
+    <!--pronounce-->
+    <div class="row">
+        <div class="btn-group" id = 'word-soundmarks-panel'>
+        </div>
+    </div>
+
+    <!--Definition-->
+    <div class="container mt-1">
+        <div id='word-definitions-panel' class="row">
+        </div>
+    </div>
+</div>
+
+
+<template id='word-definition-template'>
+    <div class="col-sm border border-dark  mt-2 mx-1">
+        <h5 id='source-head-template'>Ecdict</h5>
+        <div id='source-definition-template'>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</div>
+    </div>
+</template>
+
+
+<template id='word-soundmark-template'>
+    <button type="button" class="btn btn-light" onclick='WordPronounce.playWord(this)'>Light</button>
+</template>

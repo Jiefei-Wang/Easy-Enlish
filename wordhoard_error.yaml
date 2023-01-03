@@ -1,0 +1,10 @@
+2022-12-26 12:39:56:wordhoard.dictionary:ERROR: An IndexError occurred in the following code segment:
+2022-12-26 12:39:56:wordhoard.dictionary:ERROR:   File "C:\Users\jiefei\AppData\Local\Programs\Python\Python311\Lib\site-packages\wordhoard\dictionary.py", line 319, in _query_merriam_webster
+    definition_entries = definition_container.find_all('span', {'class': 'sb-0'})[0]
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+
+2022-12-26 12:49:39:wordhoard.dictionary:ERROR: An IndexError occurred in the following code segment:
+2022-12-26 12:49:39:wordhoard.dictionary:ERROR:   File "C:\Users\jiefei\AppData\Local\Programs\Python\Python311\Lib\site-packages\wordhoard\dictionary.py", line 319, in _query_merriam_webster
+    definition_entries = definition_container.find_all('span', {'class': 'sb-0'})[0]
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+
