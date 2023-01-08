@@ -40,7 +40,8 @@ class GlossaryWords(models.Model):
     
 class History(models.Model):
     user = models.CharField(max_length=100)
-    date = models.DateTimeField()
+    # Time since 1970-01-01 00:00:00 UTC in seconds
+    date = models.BigIntegerField()
     word = models.CharField(max_length=100)
     bookName = models.CharField(max_length=100)
     # 0: unknown, 1: fuzzy, 2: known

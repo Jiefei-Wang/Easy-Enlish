@@ -1,12 +1,12 @@
 import base64
-from django.db.models import Count
 from dateutil.parser import parse
-
+import pandas as pd
 
 from .models import *
 from .database_api import *
 from .keys import *
 from .dictionary_api import updateWordDatabase, ecdict, loadPronounce
+from .prediction import predictNextWordsLogistic
 
 #####################################################
 # Utilities
@@ -75,6 +75,8 @@ def searchWords(word, source, language, limits = 10):
 ## Format:
 ## {words : [], source1 : [], source2 : [], ...}
 def queryWordsDefinitions(words, language, sources):
+    if not isinstance(sources,list):
+        sources = [sources]
     words = [word.lower() for word in words]
     data={'words':[]}
     for key in sources:
@@ -245,58 +247,35 @@ def getExerciseBookInformation(user, bookName):
 ##########################
 # Exercise
 ##########################
+
 # Return:
 # {words : [], source : []}
-def queryNextExerciseWords(user, bookName, language, source, n=4):
+def queryNextExerciseWords(user, bookName, language, sources, n=2):
     allWords, _ = getGlossaryWordsAndDates(user, bookName)
     learningWordObjs = getExerciseHistoryDB(user).filter(word__in = allWords)
-    learningWordMat = list(learningWordObjs.values_list('word', 'date', 'studyTime','answer'))
-    learningWordCount = list(learningWordObjs.values('word').annotate(count=Count('word')).order_by('word'))
-    count = {item['word']: item['count'] for item in learningWordCount}
+    learningWordsMat = list(learningWordObjs.values_list('word','date', 'studyTime','answer'))
+    learningWordsDF = pd.DataFrame(learningWordsMat)
+    learningWordsDF.columns = ['word', 'Date', 'studyTime', 'answer']
     
-    words = predictNextWordsPlain(allWords, learningWordMat, count, n=n)
-    data = queryWordsDefinitions(words, language = language, sources = [source])
+    prediction = predictNextWordsLogistic(allWords, learningWordsDF, n=n)
     
-    soundmarks = [getSoundmarks(word, ['US', 'UK']) for word in words]
+    # Query soundmark, definition
+    data = queryWordsDefinitions(prediction.word, language = language, sources = sources)
+    soundmarks = [getSoundmarks(word, ['US', 'UK']) for word in prediction.word]
     US = [s['US'] if 'US' in s else None for s in soundmarks]
     UK = [s['UK'] if 'UK' in s else None for s in soundmarks]
     data['US'] = US
     data['UK'] = UK
+    data['prob'] = list(prediction.prob)
     
     return data
     
-    
-
-def predictNextWordsPlain(allWords, learningWordMat, count, n):
-    nLearning = 10
-    learnCutoff = 10
-    sorted_data = sorted(count.items(), key=lambda item: item[1])
-    result = [word for word,count in sorted_data if count<=learnCutoff]
-    
-    
-    if len(result)>nLearning:
-        result = result[:nLearning]
-    
-    if len(result)<=n:
-        learningWords = [w[0] for w in learningWordMat]
-        newWords = list(set(allWords) - set(learningWords))
-        nNewWords = n-len(result)
-        nNewWords = min(len(newWords), nNewWords)
-        result = newWords[:nNewWords] + result
-        
-    if len(result)>n:
-        result = result[:n]
-    
-    if len(result)<n:
-        oldWords = [word for word,count in sorted_data if count>learnCutoff]
-        nOldWords = n-len(result)
-        nOldWords = min(len(oldWords), nOldWords)
-        result.extend(oldWords[:nOldWords])
-        
-    return result
 
 def addExerciseAnswer(user, bookName, word, date, answer, studyTime):
-    date = parse(date)
+    ## Time since unix time
+    date = parse(date).timestamp()
+    if studyTime==0:
+        studyTime=1
     return addExerciseWordDB(user, bookName, word, date, answer, studyTime)
 
 
