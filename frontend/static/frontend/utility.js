@@ -313,32 +313,20 @@ class API{
         requestUtils.jsonRequest(jsonRequest, callback);
     }
 
-    static addExerciseWords(callback, bookName, word, answerCategory, studyTime){
+    static addOrUpdateExerciseWord(callback, bookName, id, word, answerId, studyTime){
         const date = new Date();
         var jsonRequest = {
-            'action' : 'add',
+            'action' : 'addOrUpdate',
             'target' :  'exerciseWords',
             'bookName': bookName,
+            'id': id,
             'word': word,
-            'answer': answerCategory,
+            'answer': answerId,
             'date': date,
             'studyTime': studyTime
         };
         requestUtils.jsonRequest(jsonRequest, callback);
     }
-
-    static updateExerciseWord(callback, wordId, answerCategory){
-        var jsonRequest = {
-            'action' : 'update',
-            'target' :  'exerciseWords',
-            'id': wordId,
-            'answer': answerCategory
-        };
-        requestUtils.jsonRequest(jsonRequest, callback);
-    }
-
-    
-    
     
 }
 

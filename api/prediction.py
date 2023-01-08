@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 import datetime
+import random
 from statsmodels.miscmodels.ordinal_model import OrderedModel
 
 ##############################################
@@ -34,6 +35,7 @@ def countWordFreqs(learningWordsDF):
 
 
 def predictNextWordsPlain(allWords, learningWordsDF, n):
+    N =max(10,n)
     # number of simultanouse learning words
     nLearning = 10
     # number of repeats before using logistic model
@@ -45,23 +47,27 @@ def predictNextWordsPlain(allWords, learningWordsDF, n):
     sorted_data = count_learning.sort_values()
     nextWords = list(sorted_data.index)
     
-    n_pick = min(nLearning,n)
-    if len(nextWords)>n_pick:
-        nextWords = nextWords[:n_pick]
+    if len(nextWords)>N:
+        nextWords = nextWords[:N]
     
     ## If number of words is less than required
-    if len(nextWords)<n:
+    if len(nextWords)<N:
         newWords = list(set(allWords) - set(learningWordsDF.word))
-        nNewWords = n-len(nextWords)
+        nNewWords = N-len(nextWords)
         nNewWords = min(len(newWords), nNewWords)
-        nextWords = nextWords + newWords[:nNewWords]
+        nextWords = newWords[:nNewWords]+ nextWords
     
-    if len(nextWords)<n:
+    if len(nextWords)<N:
         oldWords = list(count[count>=learnCutoff].index)
-        nOldWords = n-len(nextWords)
+        nOldWords = N-len(nextWords)
         nOldWords = min(len(oldWords), nOldWords)
         nextWords = nextWords + oldWords[:nOldWords]
-        
+        random.shuffle(nextWords)
+    
+    
+    n_pick = min(n,len(nextWords))
+    nextWords = nextWords[:n_pick]
+    
     df = pd.DataFrame({
         'word': nextWords,
         'prob': [np.NaN] * len(nextWords)
@@ -94,7 +100,7 @@ def logisticData(learningWordsDF):
         word = record.word
         if word not in count:
             count[word] = {
-                'date': record.Date,
+                'date': record.date,
                 'n': 0,
                 'study': record.studyTime,
                 'known':0,
@@ -107,14 +113,14 @@ def logisticData(learningWordsDF):
                                 record.word,
                                 record.answer,
                                 count[word]['n'],
-                                record.Date - count[word]['date'], 
+                                record.date - count[word]['date'], 
                                 count[word]['study'],
                                 count[word]['unknown'],
                                 count[word]['fuzzy'],
                                 count[word]['known']
                                 ] 
         count[word]['n'] += 1
-        count[word]['date'] = record.Date
+        count[word]['date'] = record.date
         count[word]['study'] = record.studyTime
         status = record.answer
         if status == 0:

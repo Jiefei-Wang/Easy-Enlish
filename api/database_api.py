@@ -132,25 +132,22 @@ def addUserInfoDB(user, glossaryBook = defaultUserValue.glossaryBookName,\
     
 
 ## Exercise history
-def addExerciseWordDB(user, bookName, word, date, answer, studyTime):
-    obj = History.objects.create(
-            user=user,
-            bookName=bookName, 
-            word=word,
-            date=date,
-            answer=answer,
-            studyTime = studyTime
+def addOrUpdateExerciseWordDB(user, bookName, id, word, date, answer, studyTime):
+    obj, created = History.objects.get_or_create(
+        uuid=id,
+        defaults={
+            'user':user,
+            'bookName':bookName,
+            'word':word,
+            'date':date,
+            'studyTime':studyTime,
+            'answer': answer
+        }
         )
-    return obj.pk
+    if not created:
+        obj.answer = answer
+        obj.save()
     
 
-def updateExerciseAnswerDB(id, answer):
-    if not History.objects.filter(id=id).exists():
-        return
-    
-    obj = History.objects.get(id=id)
-    obj.answer = answer
-    obj.save()
-    
 def getExerciseHistoryDB(user):
     return History.objects.filter(user = user)

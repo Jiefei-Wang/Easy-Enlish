@@ -1,6 +1,9 @@
 import base64
-from dateutil.parser import parse
 import pandas as pd
+import math
+import uuid
+
+from dateutil.parser import parse
 
 from .models import *
 from .database_api import *
@@ -254,9 +257,11 @@ def queryNextExerciseWords(user, bookName, language, sources, n=2):
     allWords, _ = getGlossaryWordsAndDates(user, bookName)
     learningWordObjs = getExerciseHistoryDB(user).filter(word__in = allWords)
     learningWordsMat = list(learningWordObjs.values_list('word','date', 'studyTime','answer'))
-    learningWordsDF = pd.DataFrame(learningWordsMat)
-    learningWordsDF.columns = ['word', 'Date', 'studyTime', 'answer']
-    
+    if len(learningWordsMat)>0:
+        learningWordsDF = pd.DataFrame(learningWordsMat)
+        learningWordsDF.columns = ['word', 'date', 'studyTime', 'answer']
+    else:
+        learningWordsDF = pd.DataFrame({'word':[], 'date':[], 'studyTime':[], 'answer':[]})
     prediction = predictNextWordsLogistic(allWords, learningWordsDF, n=n)
     
     # Query soundmark, definition
@@ -266,19 +271,16 @@ def queryNextExerciseWords(user, bookName, language, sources, n=2):
     UK = [s['UK'] if 'UK' in s else None for s in soundmarks]
     data['US'] = US
     data['UK'] = UK
-    data['prob'] = list(prediction.prob)
+    
+    data['probs'] = [None if math.isnan(x) else x for x in prediction.prob]
+    data['ids'] = [str(uuid.uuid1()) for x in prediction.word]
     
     return data
     
 
-def addExerciseAnswer(user, bookName, word, date, answer, studyTime):
+def addOrUpdateExerciseAnswer(user, bookName,id, word, date, answer, studyTime):
     ## Time since unix time
     date = parse(date).timestamp()
     if studyTime==0:
         studyTime=1
-    return addExerciseWordDB(user, bookName, word, date, answer, studyTime)
-
-
-def updateExerciseAnswer(id, answer):
-    return updateExerciseAnswerDB(id, answer)
-
+    return addOrUpdateExerciseWordDB(user, bookName,id, word, date, answer, studyTime)

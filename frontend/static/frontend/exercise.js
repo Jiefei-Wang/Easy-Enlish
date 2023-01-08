@@ -16,7 +16,7 @@ class Exercise{
     // Used to change an existing answer
     static wordHistoryIds = [];
     //the index of the word that is showing to the user now
-    static absoluteWordPos = 0;
+    static currentWordIdx = 0;
 
     //Calculate how long a word is shown to the user
     static wordShownTime = Date.now();
@@ -33,19 +33,23 @@ class Exercise{
     }
 
     static getCurrentIdx(){
-        return Exercise.absoluteWordPos;
+        return Exercise.currentWordIdx;
     }
     static getWordCount(){
         return Exercise.words.length;
     }
-    static getWord(id){
+    static getWordInfo(id){
         return Exercise.words[id];
     }
-    static addWords(words){
-        Exercise.words.push(...words);
-    }
-    static setWord(id, value){
-        Exercise.words[id] = value;
+    static addWordsInfo(words, ids, probs){
+        for(var i=0;i<words.length;i++){
+            var word = {
+                word : words[i],
+                id : ids[i],
+                prob : probs[i]
+            }
+            Exercise.words.push(word);
+        }
     }
     static existsWord(id){
         return Exercise.words[id] != undefined;
@@ -71,7 +75,9 @@ class Exercise{
         return Exercise.wordHistoryIds[id] != undefined;
     }
 
-
+    static getAnswerId(answer){
+        return Exercise.answerMap[answer.toLowerCase()]
+    }
 
 
     /***********************
@@ -131,22 +137,26 @@ class Exercise{
         Exercise.words=[];
         Exercise.answers=[];
         Exercise.wordHistoryIds=[];
-        Exercise.absoluteWordPos = 0;
+        Exercise.currentWordIdx = 0;
     }
 
     
     static nextWord(offset){
         const maxLoad = 1;
+        var idx = Exercise.getCurrentIdx();
         // Aloow 1 unanswered word at most
-        const undefinedCount = Exercise.absoluteWordPos + offset - Exercise.answers.filter(x => x !== undefined).length;
+        const undefinedCount = idx + offset - Exercise.answers.filter(x => x !== undefined).length;
         if (undefinedCount>=maxLoad){
             return;
         }
 
-        if(Exercise.absoluteWordPos + offset<0){
+        if(idx + offset<0){
             return;
         }
-        Exercise.absoluteWordPos = Exercise.absoluteWordPos + offset;
+        //update existing answer
+        //Exercise.uploadAnswer(idx);
+
+        Exercise.currentWordIdx = idx + offset;
         Exercise.showCard();
     }
 
@@ -162,8 +172,6 @@ class Exercise{
             }
             Exercise.bookName = bookName;
         }
-        // Reset the timer;
-        Exercise.wordShownTime = Date.now();
         Exercise.showCard();
     }
 
@@ -176,7 +184,10 @@ class Exercise{
             }, 100);
         }
 
-        var word = Exercise.getWord(idx);
+        // Reset the timer;
+        Exercise.wordShownTime = Date.now();
+        var info = Exercise.getWordInfo(idx);
+        var word = info.word;
         var title = Exercise.getWordElement();
         title.innerText = word;
         title.dataset.idx = idx;
@@ -192,7 +203,8 @@ class Exercise{
     }
 
     static showSoundmark(idx){
-        var word = Exercise.getWord(idx);
+        var info = Exercise.getWordInfo(idx);
+        var word = info.word;
 
         if(idx!= Exercise.getCurrentIdx()){
             return;
@@ -213,10 +225,12 @@ class Exercise{
     }
 
     static showDefinition(idx){
-        var word = Exercise.getWord(idx);
+        var info = Exercise.getWordInfo(idx);
+        var word = info.word;
         if(idx!= Exercise.getCurrentIdx()){
             return;
         }
+        
         if(!wordInfoHub.exists(word, 'exercise-def')){
             return setTimeout(()=>{return Exercise.showDefinition(idx)}, 100);
         }
@@ -268,10 +282,13 @@ class Exercise{
         var wordslist = jsonResponse['words'];
 
         var words =  wordslist['words'];
+        var ids = wordslist['ids']
+        var probs = wordslist['probs']
+        Exercise.addWordsInfo(words, ids, probs);
+
         var definitions = wordslist[source];
         var US = wordslist['US'];
         var UK = wordslist['UK'];
-        Exercise.addWords(words);
         
         for(var i =0;i<words.length;i++){
             var word = words[i];
@@ -282,61 +299,67 @@ class Exercise{
         }
     }
    
-    static nextWordTimer;
+    static knownWordTimer;
     static selectAnswer(buttonDOM){
-        var idx= buttonDOM.dataset.idx;
+        var idx = Exercise.getCurrentIdx();
         var existsAnswer = Exercise.existsAnswer(idx);
         var answer = buttonDOM.innerText.toLowerCase();
+
+        // update data
         Exercise.showDefinition(idx);
         Exercise.selectButton(answer)
         Exercise.setAnswer(idx, answer)
 
-        var answerCategory = Exercise.answerMap[answer];
-        var word = Exercise.getWord(idx);
-        var existsWordHistoryId = Exercise.existsWordHistoryId(idx);
-        if (!existsWordHistoryId){
-            var autoNextWord = !existsAnswer;
-
-            clearTimeout(Exercise.nextWordTimer);
-            Exercise.nextWordTimer = setTimeout(() => {
-                if (autoNextWord){
-                    Exercise.nextWord(1);
-                }
-                // Calculate how long the word has been studied
-                var timeInSeconds = (Date.now() - Exercise.wordShownTime)/1000;
-                Exercise.wordShownTime = Date.now();
-                API.addExerciseWords((req)=>{
-                    if(requestUtils.handleRequestError(req)){
-                        return;
-                    }
-                    var jsonResponse = JSON.parse(req.responseText);
-                    Exercise.setWordHistoryId(idx, jsonResponse['id']);
-                }, Exercise.bookName, word, answerCategory, timeInSeconds);
-                }, 2000); 
+        // upload answer and show next question
+        clearTimeout(Exercise.knownWordTimer);
+        if (answer == 'known' && !existsAnswer){
+            Exercise.knownWordTimer = setTimeout(() => {
+                Exercise.nextWord(1);
+            }, 1500);
         }else{
-            var wordId = Exercise.getWordHistoryId(idx);
-            API.updateExerciseWord((req)=>{
-                if(requestUtils.handleRequestError(req)){
-                    return;
-                }
-            }, wordId, answerCategory);
+            Exercise.uploadAnswer(idx);
         }
     }
 
+    // upload the answer, if answer exists, then update answer
+    static uploadAnswer(idx){
+        // We must at least have the answer
+        if (!Exercise.existsAnswer(idx)){
+            return
+        }
+        var info = Exercise.getWordInfo(idx);
+        var word = info.word
+        var id = info.id
+
+        var answer = Exercise.getAnswer(idx);
+        var answerId = Exercise.getAnswerId(answer);
+        var timeInSeconds = (Date.now() - Exercise.wordShownTime)/1000;
+        API.addOrUpdateExerciseWord((req)=>{
+            if(requestUtils.handleRequestError(req)){
+                return;
+            }
+            var jsonResponse = JSON.parse(req.responseText);
+            Exercise.setWordHistoryId(idx, jsonResponse['id']);
+        }, Exercise.bookName, id, word, answerId, timeInSeconds);
+    }
+
+
+    // If the word is clicked
     static wordOnclick(obj){
         WordPanel.backWindowId=Panels.exercise;
-        var word = Exercise.getWord(obj.dataset.idx);
+        var info = Exercise.getWordInfo(Exercise.getCurrentIdx());
+        var word = info.word;
         WordPanel.showWord(word);
     }
 
+    // If the definition is clicked
     static definitionOnclick(obj){
-        var idx = obj.dataset.idx;
+        var idx = Exercise.getCurrentIdx();
         var isShown = obj.dataset.isShown;
         if(isShown == 'true'){
             Exercise.showWaitingInfoInDefinition(idx);
         }else{
             Exercise.showDefinition(idx);
         }
-
     }
 }

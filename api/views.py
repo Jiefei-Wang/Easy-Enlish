@@ -19,7 +19,7 @@ from .query_api import getPronounce,searchWords,\
     existGlossaryBook, existGlossaryWord, getGlossaryBookFromWord,\
     setExerciseBook, getExerciseBookInformation, \
     queryNextExerciseWords,\
-    addExerciseAnswer, updateExerciseAnswer,\
+    addOrUpdateExerciseAnswer,\
     getUserInfo
 
 logger = logging.getLogger("mylogger")
@@ -139,15 +139,12 @@ def jsonApi(request):
         if action == 'query':
             data['words'] = queryNextExerciseWords(user, bookName, language, searchSource)
             data['source'] = searchSource
-        if action == 'add':
+        if action == 'addOrUpdate':
             answer = body['answer']
             date = body['date']
-            studyTime = body['studyTime']
-            data['id'] = addExerciseAnswer(user, bookName, word, date, answer, studyTime)
-        if action == 'update':
-            answer = body['answer']
             id = body['id']
-            data['id'] = updateExerciseAnswer(id,answer)
+            studyTime = body['studyTime']
+            addOrUpdateExerciseAnswer(user, bookName, id, word, date, answer, studyTime)
         return JsonResponse(data)
         
     if target == 'pronounce':
