@@ -25,20 +25,51 @@
 
     <!--Definition-->
     <div class="container mt-1">
-        <div id='word-definitions-panel' class="row">
+        <div id='word-definitions-panel'>
         </div>
     </div>
 </div>
 
 
 <template id='word-definition-template'>
-    <div class="col-sm border border-dark  mt-2 mx-1">
+    <div class="row border border-dark  mt-2 mx-1">
         <h5 id='source-head-template'>Ecdict</h5>
-        <div id='source-definition-template'>Lorem ipsum dolor sit amet, consectetur adipisicing elit...</div>
+        <div id='source-definition-template' data-type="">Lorem ipsum dolor sit amet, consectetur adipisicing elit...</div>
     </div>
 </template>
+
 
 
 <template id='word-soundmark-template'>
     <button type="button" class="btn btn-light" onclick='WordPronounce.playWord(this)'>Light</button>
 </template>
+
+
+<!-- Custon definition Modal -->
+<div class="modal" id="custom-modal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+  
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">Custom Definition</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+  
+        <!-- Modal body -->
+        <div class="modal-body">
+          <textarea id='custom-definition-box' class="form-control" placeholder="Please enter your text here." style='min-height:30vh'></textarea>
+        </div>
+  
+        <!-- Modal footer -->
+        <div class="modal-footer">
+            <button id='custom-confirm-button' type="button" class="btn btn-success" 
+                data-bs-dismiss="modal" onclick="WordPanel.custonConfirmOnclick(this)" data-source="">
+                Confirm
+            </button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+        </div>
+  
+      </div>
+    </div>
+  </div>

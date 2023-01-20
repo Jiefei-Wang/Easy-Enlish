@@ -193,10 +193,21 @@ class API{
         requestUtils.jsonRequest(jsonRequest, callback)
     }
 
-    static queryWordDefinitions(callback, word){
+    static queryWordDefinitions(callback, word, sources=[]){
         var jsonRequest = {
             'action' : 'queryWordDefinitions',
-            'word' :  word
+            'word' :  word,
+            'sources': sources
+        };
+        requestUtils.jsonRequest(jsonRequest, callback);
+    }
+
+    static updateCustomDefinitions(callback, word, source, meaning){
+        var jsonRequest = {
+            'action' : 'updateCustom',
+            'word' :  word,
+            'source': source,
+            'meaning': meaning
         };
         requestUtils.jsonRequest(jsonRequest, callback);
     }

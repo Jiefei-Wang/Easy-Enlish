@@ -1,16 +1,20 @@
-class source:
+class Source:
     dictionaryapi = "dictionaryapi"
     google = "google"
     ecdict = "ecdict"
     PyDictionary = "PyDictionary"
 
+class CustomSource:
+    customDefinition = "customDefinition"
+    customNote = "customNote"
 
 class defaultUserValue:
     glossaryBookName = 'mybook'
     exerciseBook = 'mybook'
     language = 'zh-CN'
-    searchSource = source.ecdict
-    definitionSources = source.ecdict + ',' + source.PyDictionary + ',' + source.dictionaryapi  + ',' + source.google 
+    searchSource = Source.ecdict
+    definitionSources = Source.ecdict + ',' + Source.PyDictionary + ',' + Source.dictionaryapi  + ',' + Source.google
 
 
-allSources = [attr for attr in dir(source) if not callable(getattr(source, attr)) and not attr.startswith("__")]
+allSources = [attr for attr in dir(Source) if not callable(getattr(Source, attr)) and not attr.startswith("__")]
+allCustomSources = [attr for attr in dir(CustomSource) if not callable(getattr(CustomSource, attr)) and not attr.startswith("__")]

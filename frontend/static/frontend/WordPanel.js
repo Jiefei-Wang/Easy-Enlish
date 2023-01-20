@@ -20,6 +20,15 @@ class WordPanel {
     static getWordSoundmarksPanelElement(){
         return document.getElementById("word-soundmarks-panel");
     }
+    
+    static getCustomDefinitionBoxElement(){
+        return document.getElementById("custom-definition-box");
+    }
+    static getCustomConfirmButtonElement(){
+        return document.getElementById("custom-confirm-button");
+    }
+    
+
 
     static createSoundmarkElement(word, region, soundmark){
         const template = document.getElementById('word-soundmark-template');
@@ -40,8 +49,14 @@ class WordPanel {
         var headElt = obj.querySelector("#source-head-template");
         headElt.innerText = source;
 
+        if(source == Keys.customDefinition||source == Keys.customNote){
+            headElt.innerHTML = headElt.innerHTML+
+            `<button style="float: right;" data-bs-toggle="modal" data-bs-target="#custom-modal" data-source="${source}" onclick="WordPanel.editOnclick(this)">Edit</button>`;
+        }
+
         var definitionElt=obj.querySelector("#source-definition-template");
         definitionElt.innerText = definition;
+        definitionElt.dataset.type = `definition-${source}`;
         return obj;
     }
 
@@ -61,9 +76,8 @@ class WordPanel {
         */
         WordPanel.workingOn = word;
         
-
-        // Get the word definition 
-        API.queryWordDefinitions(WordPanel.wordDefinitionsCallback, word);
+        // Get the word definition + custom definition
+        API.queryWordDefinitions(WordPanel.wordDefinitionsCallback, word, [Keys.customDefinition, Keys.customNote]);
 
         // Get the word soundmark
         API.queryWordSoundmarks(WordPanel.wordSoundMarkCallback, word);
@@ -85,7 +99,6 @@ class WordPanel {
         var sources = jsonResponse['sources'];
         if (WordPanel.workingOn!=word)
             return;
-
 
         var wordPanel = WordPanel.getWordDefinitionsPanelElement();
         wordPanel.innerHTML='';
@@ -168,6 +181,9 @@ class WordPanel {
         }
     }
 
+
+
+
     static addOrRemoveCallback(req){
         if(requestUtils.handleRequestError(req)){
             return;
@@ -191,6 +207,30 @@ class WordPanel {
             showPanel(WordPanel.backWindowId, false);
             WordPanel.backWindowId = null;
         }
+    }
+
+    static editOnclick(editDOM){
+        var source = editDOM.dataset.source;
+        var textDOM = document.querySelector(`[data-type="definition-${source}"]`);
+        var box = WordPanel.getCustomDefinitionBoxElement();
+        box.value = textDOM.innerText;
+
+        var confirmButton = WordPanel.getCustomConfirmButtonElement();
+        confirmButton.dataset.source = source;
+    }
+
+    static custonConfirmOnclick(buttonDOM){
+        var source = buttonDOM.dataset.source;
+        var meaning = WordPanel.getCustomDefinitionBoxElement().value;
+        var word = WordPanel.getTitleElement().innerText;
+
+        var textDOM = document.querySelector(`[data-type="definition-${source}"]`);
+        textDOM.innerText = meaning;
+        API.updateCustomDefinitions((req)=>{
+            if(requestUtils.handleRequestError(req)){
+                return;
+            }
+        }, word,source,meaning);
     }
 }
 

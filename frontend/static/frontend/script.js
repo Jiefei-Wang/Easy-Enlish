@@ -7,6 +7,8 @@ class Keys {
     static dictionaryapi = "dictionaryapi";
     static ecdict = "ecdict";
     static google = "google";
+    static customDefinition = "customDefinition";
+    static customNote = "customNote";
     static US = "US";
     static UK = "UK";
     static AU = "AU";

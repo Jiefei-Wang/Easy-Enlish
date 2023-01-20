@@ -50,9 +50,12 @@ def updateWordFromSource(word, language, source, sourceFunc):
 # Exported function
 #####################################################
 def updateWordDatabase(word, language, sources = allSources):
-    nonExistSources = list(set(sources) - set(allSources))
+    nonExistSources = list(set(sources) - set(allSources) - set(allCustomSources))
     if len(nonExistSources)>0:
         raise Exception(f'Non exist source found in {sources}')
+    
+    ## Exclude custom source
+    sources = list(set(sources) - set(allCustomSources))
     
     word = word.lower()
     allFunctions = [globals()[name + "Source"] for name in allSources]
@@ -76,7 +79,7 @@ def loadPronounce(word, region):
 def dictionaryapiSource(word, language):    
     word = word.lower()
     if (detect_lang(word) != "en"):
-        markMissingDB(word, language=language, source = source.dictionaryapi)
+        markMissingDB(word, language=language, source = Source.dictionaryapi)
         return
     
     ## Request word data
@@ -88,7 +91,7 @@ def dictionaryapiSource(word, language):
         return
     
     if response.status_code==404:
-        markMissingDB(word, language=language, source = source.dictionaryapi)
+        markMissingDB(word, language=language, source = Source.dictionaryapi)
         return
     else:
         if response.status_code!=200:
@@ -117,7 +120,7 @@ def dictionaryapiSource(word, language):
     antonyms = ", ".join(antonyms)
     
     ## Save the word data to database
-    saveWordDB(source.dictionaryapi, word, language, meaning)
+    saveWordDB(Source.dictionaryapi, word, language, meaning)
     
     ## Save pronounce data to database
     soundmarks = [i.get('text', 'none') for i in json_response['phonetics']]
@@ -134,11 +137,11 @@ def dictionaryapiSource(word, language):
     return True
 
 def dictionaryapiPronounce(word, region, soundmark, url):
-    exists = WordPronounce.objects.filter(word=word, source = source.dictionaryapi, region=region).exists()
+    exists = WordPronounce.objects.filter(word=word, source = Source.dictionaryapi, region=region).exists()
     if not exists:
         response = requests.get(url)
         if response.status_code==200:
-            savePronounceDB(source.dictionaryapi, word, region, soundmark)
+            savePronounceDB(Source.dictionaryapi, word, region, soundmark)
 
 def googleSource(word, language):
     try: 
@@ -149,7 +152,7 @@ def googleSource(word, language):
             result = tss.google(word, from_language='en', to_language=language)
         else:
             result = tss.google(word, from_language=lang, to_language='en')
-        saveWordDB(source.google, word, language, result)
+        saveWordDB(Source.google, word, language, result)
     except  Exception as e:
         print(e)
 
@@ -157,9 +160,9 @@ def googleSource(word, language):
 def ecdictSource(word, language):
     definition = ecdict.query(word)
     if definition==None:
-        markMissingDB(word, language=language, source = source.ecdict)
+        markMissingDB(word, language=language, source = Source.ecdict)
     else:
-        saveWordDB(source.ecdict, word, language, definition['translation'])
+        saveWordDB(Source.ecdict, word, language, definition['translation'])
     
 def PyDictionarySource(word, language):
     try:
@@ -168,9 +171,9 @@ def PyDictionarySource(word, language):
         definitionsCombined = ''
         for key, values in definitions.items():
             definitionsCombined = definitionsCombined + key + ':\n'+ '\n'.join([' ' + str(i+1) + '. ' + values[i] for i in range(len(values))])
-        saveWordDB(source.PyDictionary, word, language, definitionsCombined)
+        saveWordDB(Source.PyDictionary, word, language, definitionsCombined)
     except Exception:
-        markMissingDB(word, language=language, source = source.PyDictionary)
+        markMissingDB(word, language=language, source = Source.PyDictionary)
 
 #####################################################
 # Pronounciation

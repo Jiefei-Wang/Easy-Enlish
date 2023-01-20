@@ -12,7 +12,7 @@ import logging
 
 from .keys import *
 from .models import *
-from .query_api import getPronounce,searchWords,\
+from .query_api import getPronounce,searchWords,updateCustomDefinition,\
     queryWordDefinitions, getSoundmarks,\
     addGlossaryBook, deleteGlossaryBook, getGlossaryBooks, setDefaultGlossaryBook,\
     addGlossaryWord, deleteGlossaryWord, queryGlossaryWords,\
@@ -57,6 +57,8 @@ def jsonApi(request):
         bookName=userInfo['glossaryBook']
     if 'target' in body:
         target = body['target']
+    else:
+        target = None
         
     
     logger.info(f'JSON api GET -- user: {request.user} operation: {body}')
@@ -69,9 +71,10 @@ def jsonApi(request):
         return JsonResponse(data)
     
     if action == 'queryWordDefinitions':
-        data = queryWordDefinitions(word, language, definitionSources)
+        sources = definitionSources + body['sources']
+        data = queryWordDefinitions(word, language, sources)
         data['word'] = word
-        data['sources'] = definitionSources
+        data['sources'] = sources
         return JsonResponse(data)
     
     if action == 'queryWordSoundmarks':
@@ -81,11 +84,22 @@ def jsonApi(request):
         data['regions'] = regions
         return JsonResponse(data)
     
+    ## user info
     if action == 'getUserInfo':
         return JsonResponse(getUserInfo(user))
     
+    ## Below require user login
     if not is_authenticated:
         return HttpResponseForbidden('You must log in to perform the action')
+    
+    if action == "updateCustom":
+        source = body['source']
+        meaning = body['meaning']
+        updateCustomDefinition(word, meaning, source)
+        data = {}
+        data['word'] = word
+        return JsonResponse(data)
+ 
     
     if action == "findBookByWord":
         data = {'book': getGlossaryBookFromWord(user, word)}

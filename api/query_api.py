@@ -19,6 +19,8 @@ def removeNoneItems(dictObj):
 
 
 def formatWordDefinition(word, language, source):
+    if source==CustomSource.customNote or source==CustomSource.customDefinition:
+        language=""
     if not existsWordDB(word=word, language=language, source=source):
         return None
     obj = getWordsDB(word=word, language=language, source=source).first()
@@ -95,6 +97,8 @@ def queryWordsDefinitions(words, language, sources):
 ## Return:
 ## {source1 : defintion, source2: definition, ...}
 def queryWordDefinitions(word, language, sources):
+    if not isinstance(sources,list):
+        sources = [sources]
     updateWordDatabase(word, language, sources)
     data =  {source: formatWordDefinition(word, language = language, source=source ) for source in sources}
     return data
@@ -116,6 +120,10 @@ def getPronounce(word, region, encode=True):
     else:
         return data
 
+def updateCustomDefinition(word, meanings, source):
+    if source!=CustomSource.customNote and source!=CustomSource.customDefinition:
+        raise Exception(f"Unknow source {source}")
+    saveWordDB(source, word, "", meanings)
 
 ##########################
 # Glossary words
