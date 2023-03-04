@@ -28,6 +28,38 @@ class WordPanel {
         return document.getElementById("custom-confirm-button");
     }
     
+    static getAnnotationElement(type){
+        var element_id;
+        if (type == "definition"){
+            element_id = 'word-custom-definition-panel';
+        }else{
+            element_id = "word-custom-note-panel";
+        }
+        return document.getElementById(element_id);
+    }
+    static getAnnotationTextElement(type){
+        var element_id;
+        if (type == "definition"){
+            element_id = "word-custom-definition";
+        }else{
+            element_id = "word-custom-note";
+        }
+        return document.getElementById(element_id);
+    }
+
+    static cleanAnnotation(){
+        if (UserInfo.is_authenticated()) {
+            WordPanel.getAnnotationElement(Keys.customDefinition).hidden = false;
+            var elt = WordPanel.getAnnotationTextElement(Keys.customDefinition);
+            elt.innerHTML = "Loading, please wait";
+            WordPanel.getAnnotationElement(Keys.customNote).hidden = false;
+            var elt = WordPanel.getAnnotationTextElement(Keys.customNote);
+            elt.innerHTML = "Loading, please wait";
+        }else{
+            WordPanel.getAnnotationElement(Keys.customDefinition).hidden = true;
+            WordPanel.getAnnotationElement(Keys.customNote).hidden = true;
+        }
+    }
 
 
     static createSoundmarkElement(word, region, soundmark){
@@ -76,8 +108,15 @@ class WordPanel {
         */
         WordPanel.workingOn = word;
         
-        // Get the word definition + custom definition
-        API.queryWordDefinitions(WordPanel.wordDefinitionsCallback, word, [Keys.customDefinition, Keys.customNote]);
+        // Get the word definition
+        API.queryWordDefinitions(WordPanel.wordDefinitionsCallback, word);
+
+        // Get custom definition
+        WordPanel.cleanAnnotation();
+        if (UserInfo.is_authenticated()) {
+            API.getWordAnnotation(WordPanel.wordAnnotationCallback, word, Keys.customDefinition);
+            API.getWordAnnotation(WordPanel.wordAnnotationCallback, word, Keys.customNote);
+        }
 
         // Get the word soundmark
         API.queryWordSoundmarks(WordPanel.wordSoundMarkCallback, word);
@@ -107,6 +146,22 @@ class WordPanel {
             var obj = WordPanel.createWordDetailElement(source, jsonResponse[source]);
             wordPanel.append(obj);
         }
+    }
+
+    
+    static wordAnnotationCallback(req){
+        if(requestUtils.handleRequestError(req)){
+            return;
+        }
+        var jsonResponse = JSON.parse(req.responseText);
+        var word = jsonResponse['word'];
+        var data = jsonResponse['data'];
+        var type = jsonResponse['type'];
+        if (WordPanel.workingOn!=word)
+            return;
+
+        var wordPanel = WordPanel.getAnnotationTextElement(type);
+        wordPanel.innerText=data;
     }
 
 
@@ -209,28 +264,34 @@ class WordPanel {
         }
     }
 
-    static editOnclick(editDOM){
-        var source = editDOM.dataset.source;
-        var textDOM = document.querySelector(`[data-type="definition-${source}"]`);
+    static editOnclick(type){
+        if(!UserInfo.is_authenticated()){
+            return;
+        }
+        var textDOM = WordPanel.getAnnotationTextElement(type);
+
         var box = WordPanel.getCustomDefinitionBoxElement();
         box.value = textDOM.innerText;
-
+        
         var confirmButton = WordPanel.getCustomConfirmButtonElement();
-        confirmButton.dataset.source = source;
+        confirmButton.dataset.type = type;
     }
 
-    static custonConfirmOnclick(buttonDOM){
-        var source = buttonDOM.dataset.source;
+    static customConfirmOnclick(buttonDOM){
+        if(!UserInfo.is_authenticated()){
+            return;
+        }
+        var type = buttonDOM.dataset.type;
         var meaning = WordPanel.getCustomDefinitionBoxElement().value;
         var word = WordPanel.getTitleElement().innerText;
 
-        var textDOM = document.querySelector(`[data-type="definition-${source}"]`);
+        var textDOM = WordPanel.getAnnotationTextElement(type);
         textDOM.innerText = meaning;
-        API.updateCustomDefinitions((req)=>{
+        API.updateWordAnnotation((req)=>{
             if(requestUtils.handleRequestError(req)){
                 return;
             }
-        }, word,source,meaning);
+        }, word,type,meaning);
     }
 }
 

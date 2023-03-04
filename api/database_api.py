@@ -65,6 +65,26 @@ def savePronounceDB(source, word, region, soundmark):
     obj.soundmark = soundmark
     obj.save()
 
+
+
+## Word customization
+def existsWordAnnotationDB(user, word, type):
+    filter=WordAnnotation.objects.filter(user=user, word=word,type=type)
+    return filter.exists()
+
+def getWordAnnotationDB(user, word, type):
+    return WordAnnotation.objects.get(user=user, word=word,type=type).data
+    
+def updataWordAnnotationDB(user, word, type, data):
+    obj, created = WordAnnotation.objects.update_or_create(user=user, word=word,type=type)
+    obj.data = data
+    obj.save()
+
+def deleteWordAnnotationDB(user, word, type):
+    getGlossaryBookDB(user=user, word=word,type=type).delete()
+    
+
+
 ## Glossary book
 def existsGlossaryBookDB(user, bookName):
     return GlossaryBooks.objects.filter(user=user,bookName=bookName).exists()

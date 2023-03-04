@@ -27,6 +27,33 @@
     <div class="container mt-1">
         <div id='word-definitions-panel'>
         </div>
+        <br>
+        
+        <!--custom definition-->
+        <div id='word-custom-definition-panel'>
+            <div class="row border border-dark  mt-2 mx-1">
+                <h5 id='word-custom-definition-head'>
+                    Custom definition
+                    <button style="float: right;" data-bs-toggle="modal" data-bs-target="#custom-modal" onclick="WordPanel.editOnclick('definition')">
+                        Edit
+                    </button>
+                </h5>
+                <div id='word-custom-definition' data-type=""></div>
+            </div>
+        </div>
+
+        <!--custom note-->
+        <div id='word-custom-note-panel'>
+            <div class="row border border-dark  mt-2 mx-1">
+                <h5 id='word-custom-note-head'>
+                    Note
+                    <button style="float: right;" data-bs-toggle="modal" data-bs-target="#custom-modal" onclick="WordPanel.editOnclick('note')">
+                        Edit
+                    </button>
+                </h5>
+                <div id='word-custom-note' data-type=""></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -45,7 +72,7 @@
 </template>
 
 
-<!-- Custon definition Modal -->
+<!-- Custom definition Modal -->
 <div class="modal" id="custom-modal">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -64,7 +91,7 @@
         <!-- Modal footer -->
         <div class="modal-footer">
             <button id='custom-confirm-button' type="button" class="btn btn-success" 
-                data-bs-dismiss="modal" onclick="WordPanel.custonConfirmOnclick(this)" data-source="">
+                data-bs-dismiss="modal" onclick="WordPanel.customConfirmOnclick(this)" data-type="">
                 Confirm
             </button>
             <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>

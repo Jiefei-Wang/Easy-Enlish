@@ -6,6 +6,7 @@ from .models import *
 
 
 admin.site.register(WordDefinition)
+admin.site.register(WordAnnotation)
 admin.site.register(WordPronounce)
 admin.site.register(MissingWord)
 admin.site.register(History)

@@ -19,8 +19,6 @@ def removeNoneItems(dictObj):
 
 
 def formatWordDefinition(word, language, source):
-    if source==CustomSource.customNote or source==CustomSource.customDefinition:
-        language=""
     if not existsWordDB(word=word, language=language, source=source):
         return None
     obj = getWordsDB(word=word, language=language, source=source).first()
@@ -119,11 +117,19 @@ def getPronounce(word, region, encode=True):
         return base64.b64encode(data).decode()
     else:
         return data
+    
+def updateWordAnnotation(user, word, type, data):
+    if data=="":
+        if existsWordAnnotationDB(user, word, type):
+            deleteWordAnnotationDB(user, word, type)
+    else:
+        updataWordAnnotationDB(user, word, type, data)
 
-def updateCustomDefinition(word, meanings, source):
-    if source!=CustomSource.customNote and source!=CustomSource.customDefinition:
-        raise Exception(f"Unknow source {source}")
-    saveWordDB(source, word, "", meanings)
+def getWordAnnotation(user, word, type):
+    if existsWordAnnotationDB(user, word, type):
+        return getWordAnnotationDB(user, word, type)
+    else:
+        return ""
 
 ##########################
 # Glossary words
@@ -261,7 +267,7 @@ def getExerciseBookInformation(user, bookName):
 
 # Return:
 # {words : [], source : []}
-def queryNextExerciseWords(user, bookName, language, sources, n=2):
+def queryNextExerciseWords(user, bookName, language, source, n=2):
     allWords, _ = getGlossaryWordsAndDates(user, bookName)
     learningWordObjs = getExerciseHistoryDB(user).filter(word__in = allWords)
     learningWordsMat = list(learningWordObjs.values_list('word','date', 'studyTime','answer'))
@@ -272,14 +278,24 @@ def queryNextExerciseWords(user, bookName, language, sources, n=2):
         learningWordsDF = pd.DataFrame({'word':[], 'date':[], 'studyTime':[], 'answer':[]})
     prediction = predictNextWordsLogistic(allWords, learningWordsDF, n=n)
     
-    # Query soundmark, definition
-    data = queryWordsDefinitions(prediction.word, language = language, sources = sources)
+    # Query definition
+    data = queryWordsDefinitions(prediction.word, language = language, sources = source)
+    data[source] = [definition if definition != None \
+        else queryWordDefinitions(word, language = language, sources = Source.google)[Source.google][0] \
+            for word, definition in zip(prediction.word,data[source])]
+    
+    # Query custom definition
+    customDefinition = [getWordAnnotation(user, word, Annotation.definition) for word in prediction.word]
+    data["customDefinition"] = customDefinition
+    
+    # Query soundmarks
     soundmarks = [getSoundmarks(word, ['US', 'UK']) for word in prediction.word]
     US = [s['US'] if 'US' in s else None for s in soundmarks]
     UK = [s['UK'] if 'UK' in s else None for s in soundmarks]
     data['US'] = US
     data['UK'] = UK
     
+    # probability of remembering it
     data['probs'] = [None if math.isnan(x) else x for x in prediction.prob]
     data['ids'] = [str(uuid.uuid1()) for x in prediction.word]
     

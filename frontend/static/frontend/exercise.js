@@ -235,10 +235,24 @@ class Exercise{
             return setTimeout(()=>{return Exercise.showDefinition(idx)}, 100);
         }
 
-        var defintionElt = Exercise.getDefinitionElement();
-        defintionElt.innerText = wordInfoHub.get(word, 'exercise-def');
-        defintionElt.dataset.idx = idx;
-        defintionElt.dataset.isShown = true;
+        var defintionPanel = Exercise.getDefinitionElement();
+
+        var definition = wordInfoHub.get(word, 'exercise-def');
+        var definitionElt = document.createElement("div");
+        definitionElt.innerText = definition;
+        defintionPanel.innerHTML = "<p>Definition</p>";
+        defintionPanel.appendChild(definitionElt);
+
+        var customDefinition = wordInfoHub.get(word, 'exercise-custom-def');
+        if(customDefinition!=""){
+            defintionPanel.innerHTML = defintionPanel.innerHTML + "<br><p> Custom Definition</p>";
+            var CustomDefinitionElt = document.createElement("div");
+            CustomDefinitionElt.innerText = customDefinition;
+            defintionPanel.appendChild(CustomDefinitionElt);
+        }
+
+        defintionPanel.dataset.idx = idx;
+        defintionPanel.dataset.isShown = true;
     }
     
     static showWaitingInfoInDefinition(idx){
@@ -287,13 +301,16 @@ class Exercise{
         Exercise.addWordsInfo(words, ids, probs);
 
         var definitions = wordslist[source];
+        var customDefinitions = wordslist["customDefinition"];
         var US = wordslist['US'];
         var UK = wordslist['UK'];
         
         for(var i =0;i<words.length;i++){
             var word = words[i];
             var def = definitions[i];
+            var customDef = customDefinitions[i]
             wordInfoHub.set(word, 'exercise-def', def);
+            wordInfoHub.set(word, 'exercise-custom-def', customDef);
             wordInfoHub.set(word, 'UK', UK[i]);
             wordInfoHub.set(word, 'US', US[i]);
         }

@@ -4,9 +4,9 @@ class Source:
     ecdict = "ecdict"
     PyDictionary = "PyDictionary"
 
-class CustomSource:
-    customDefinition = "customDefinition"
-    customNote = "customNote"
+class Annotation:
+    definition = "definition"
+    note = "note"
 
 class defaultUserValue:
     glossaryBookName = 'mybook'
@@ -17,4 +17,3 @@ class defaultUserValue:
 
 
 allSources = [attr for attr in dir(Source) if not callable(getattr(Source, attr)) and not attr.startswith("__")]
-allCustomSources = [attr for attr in dir(CustomSource) if not callable(getattr(CustomSource, attr)) and not attr.startswith("__")]

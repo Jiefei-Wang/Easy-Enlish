@@ -12,7 +12,8 @@ import logging
 
 from .keys import *
 from .models import *
-from .query_api import getPronounce,searchWords,updateCustomDefinition,\
+from .query_api import getPronounce,searchWords,\
+    updateWordAnnotation,getWordAnnotation,\
     queryWordDefinitions, getSoundmarks,\
     addGlossaryBook, deleteGlossaryBook, getGlossaryBooks, setDefaultGlossaryBook,\
     addGlossaryWord, deleteGlossaryWord, queryGlossaryWords,\
@@ -71,10 +72,9 @@ def jsonApi(request):
         return JsonResponse(data)
     
     if action == 'queryWordDefinitions':
-        sources = definitionSources + body['sources']
-        data = queryWordDefinitions(word, language, sources)
+        data = queryWordDefinitions(word, language, definitionSources)
         data['word'] = word
-        data['sources'] = sources
+        data['sources'] = definitionSources
         return JsonResponse(data)
     
     if action == 'queryWordSoundmarks':
@@ -92,15 +92,20 @@ def jsonApi(request):
     if not is_authenticated:
         return HttpResponseForbidden('You must log in to perform the action')
     
-    if action == "updateCustom":
-        source = body['source']
-        meaning = body['meaning']
-        updateCustomDefinition(word, meaning, source)
-        data = {}
-        data['word'] = word
+    if target == "wordAnnotation":
+        type = body['type']
+        if action == "update":
+            data = body['data']
+            updateWordAnnotation(user, word, type, data)
+        if action == "get":
+            data = getWordAnnotation(user, word, type)
+        data = {
+            "word": word,
+            "type": type,
+            "data": data
+        }
         return JsonResponse(data)
  
-    
     if action == "findBookByWord":
         data = {'book': getGlossaryBookFromWord(user, word)}
         return JsonResponse(data)
@@ -173,8 +178,6 @@ def jsonApi(request):
         if target == "word":
             data = {'books':existGlossaryWord(user, bookName, word)}
         return JsonResponse(data)
-    
-        
     
     return HttpResponseBadRequest(f'The JSON action "{action}" is not allowed')
         

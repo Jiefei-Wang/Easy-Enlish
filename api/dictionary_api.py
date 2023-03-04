@@ -50,12 +50,9 @@ def updateWordFromSource(word, language, source, sourceFunc):
 # Exported function
 #####################################################
 def updateWordDatabase(word, language, sources = allSources):
-    nonExistSources = list(set(sources) - set(allSources) - set(allCustomSources))
+    nonExistSources = list(set(sources) - set(allSources))
     if len(nonExistSources)>0:
         raise Exception(f'Non exist source found in {sources}')
-    
-    ## Exclude custom source
-    sources = list(set(sources) - set(allCustomSources))
     
     word = word.lower()
     allFunctions = [globals()[name + "Source"] for name in allSources]

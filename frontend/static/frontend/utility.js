@@ -193,21 +193,31 @@ class API{
         requestUtils.jsonRequest(jsonRequest, callback)
     }
 
-    static queryWordDefinitions(callback, word, sources=[]){
+    static queryWordDefinitions(callback, word){
         var jsonRequest = {
             'action' : 'queryWordDefinitions',
-            'word' :  word,
-            'sources': sources
+            'word' :  word
         };
         requestUtils.jsonRequest(jsonRequest, callback);
     }
 
-    static updateCustomDefinitions(callback, word, source, meaning){
+    static getWordAnnotation(callback,word, type){
         var jsonRequest = {
-            'action' : 'updateCustom',
+            'target': 'wordAnnotation',
+            'action' : 'get',
             'word' :  word,
-            'source': source,
-            'meaning': meaning
+            'type': type
+        };
+        requestUtils.jsonRequest(jsonRequest, callback);
+
+    }
+    static updateWordAnnotation(callback, word, type, data){
+        var jsonRequest = {
+            'target': 'wordAnnotation',
+            'action' : 'update',
+            'word' :  word,
+            'type': type,
+            'data': data
         };
         requestUtils.jsonRequest(jsonRequest, callback);
     }

@@ -9,6 +9,15 @@ class WordDefinition(models.Model):
     def __str__(self):
         return f'{self.source}: {self.word}\n{self.meanings}'
 
+class WordAnnotation(models.Model):
+    user = models.CharField(max_length=100)
+    word = models.CharField(max_length=100)
+    type = models.CharField(max_length=100)
+    data = models.CharField(max_length=400)
+    def __str__(self):
+        return f'{self.type}: {self.word}\n{self.data}'
+
+
 class WordPronounce(models.Model):
     word = models.CharField(max_length=100)
     source = models.CharField(max_length=100)
