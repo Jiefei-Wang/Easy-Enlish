@@ -3,3 +3,4 @@ playground.py
 *.sqlite3
 node_modules/
 pronunciation/
+.env

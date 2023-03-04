@@ -141,6 +141,9 @@ def addUserInfoDB(user, glossaryBook = defaultUserValue.glossaryBookName,\
     language = defaultUserValue.language,\
     searchSource=defaultUserValue.searchSource,\
     definitionSources=defaultUserValue.definitionSources):
+    
+    addGlossaryBookDB(user, glossaryBook)
+    addGlossaryBookDB(user, exerciseBook)
     glossaryBookObj = getGlossaryBookDB(user, glossaryBook)
     exerciseBookObj = getGlossaryBookDB(user, exerciseBook)
     UserInfo.objects.create(user=user, 

@@ -20,8 +20,18 @@
         </div>
 
         <!--Definition-->
-        <div id="exercise-definition" class="card m-1 p-2" style="height:65vh;" onclick="Exercise.definitionOnclick(this)">
-            <p >Explanation</p>
+        <div id="exercise-definition-panel-hide" class="card m-1 p-2" style="height:65vh;" onclick="Exercise.definitionOnclick(this)">
+            <p >Click me to see the word definition</p>
+        </div>
+        <div id="exercise-definition-panel" class="card m-1 p-2" style="height:65vh;" onclick="Exercise.definitionOnclick(this)" hidden=true>
+            <h2>Definition</h2>
+            <div id ="exercise-definition">
+
+            </div>
+            <h2 id ="exercise-note-title">Note</h2>
+            <div id ="exercise-note">
+                
+            </div>
         </div>
 
         <!--Answer-->

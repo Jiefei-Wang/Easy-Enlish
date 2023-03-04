@@ -91,15 +91,29 @@ class Exercise{
         return document.getElementById("exercise-soundmark-panel");
     }
 
-    static getDefinitionElement(){
-        return document.getElementById("exercise-definition");
-    }
-
     static getAnswerElement(type){
         return document.getElementById(`exercise-answer-${type}`);
     }
 
-    
+    static getDefinitionPanelHideElement(){
+        return document.getElementById("exercise-definition-panel-hide");
+    }
+
+    static getDefinitionPanelElement(){
+        return document.getElementById("exercise-definition-panel");
+    }
+
+    static getDefinitionElement(){
+        return document.getElementById("exercise-definition");
+    }
+
+    static getNoteElement(){
+        return document.getElementById("exercise-note");
+    }
+
+    static getNoteTitleElement(){
+        return document.getElementById("exercise-note-title");
+    }
     /***********************
      button control
     ***********************/
@@ -221,6 +235,10 @@ class Exercise{
             var sm = WordPanel.createSoundmarkElement(word, region, soundmark);
             sm.setAttribute('class', 'btn btn-sm btn-light')
             panel.append(sm);
+            //Pronunce the word
+            if(region=="US"){
+                WordPronounce.playWord(sm);
+            }
         }
     }
 
@@ -235,31 +253,39 @@ class Exercise{
             return setTimeout(()=>{return Exercise.showDefinition(idx)}, 100);
         }
 
-        var defintionPanel = Exercise.getDefinitionElement();
+        Exercise.getDefinitionPanelHideElement().hidden=true;
+        Exercise.getDefinitionPanelElement().hidden=false;
 
-        var definition = wordInfoHub.get(word, 'exercise-def');
-        var definitionElt = document.createElement("div");
+        //Add definition
+        //If the custom definition exists, then use the custom one
+        //Otherwise, use default definition
+        var definition = wordInfoHub.get(word, 'exercise-custom-def');
+        if(definition==""){
+            definition = wordInfoHub.get(word, 'exercise-def');
+        }
+        var definitionElt = Exercise.getDefinitionElement();
         definitionElt.innerText = definition;
-        defintionPanel.innerHTML = "<p>Definition</p>";
-        defintionPanel.appendChild(definitionElt);
 
-        var customDefinition = wordInfoHub.get(word, 'exercise-custom-def');
-        if(customDefinition!=""){
-            defintionPanel.innerHTML = defintionPanel.innerHTML + "<br><p> Custom Definition</p>";
-            var CustomDefinitionElt = document.createElement("div");
-            CustomDefinitionElt.innerText = customDefinition;
-            defintionPanel.appendChild(CustomDefinitionElt);
+        // Add note
+        var note = wordInfoHub.get(word, 'exercise-note');
+        if(note!=""){
+            Exercise.getNoteTitleElement().hidden=false;
+            var noteElt = Exercise.getNoteElement();
+            noteElt.innerText = note;
+        }else{
+            Exercise.getNoteTitleElement().hidden=true;
         }
 
-        defintionPanel.dataset.idx = idx;
-        defintionPanel.dataset.isShown = true;
+        //defintionElt.dataset.idx = idx;
+        //defintionElt.dataset.isShown = true;
     }
     
     static showWaitingInfoInDefinition(idx){
-        var defintionElt = Exercise.getDefinitionElement();
-        defintionElt.innerText = 'Click me to see the word definition';
-        defintionElt.dataset.idx = idx;
-        defintionElt.dataset.isShown = false;
+        Exercise.getDefinitionPanelHideElement().hidden=false;
+        Exercise.getDefinitionPanelElement().hidden=true;
+        //var definitionElt = Exercise.getDefinitionElement();
+       //definitionElt.dataset.idx = idx;
+        //definitionElt.dataset.isShown = false;
     }
 
     static showAnswerButton(idx){
@@ -302,15 +328,18 @@ class Exercise{
 
         var definitions = wordslist[source];
         var customDefinitions = wordslist["customDefinition"];
+        var notes = wordslist["note"];
         var US = wordslist['US'];
         var UK = wordslist['UK'];
         
         for(var i =0;i<words.length;i++){
             var word = words[i];
             var def = definitions[i];
-            var customDef = customDefinitions[i]
+            var customDef = customDefinitions[i];
+            var note = notes[i];
             wordInfoHub.set(word, 'exercise-def', def);
             wordInfoHub.set(word, 'exercise-custom-def', customDef);
+            wordInfoHub.set(word, 'exercise-note', note);
             wordInfoHub.set(word, 'UK', UK[i]);
             wordInfoHub.set(word, 'US', US[i]);
         }

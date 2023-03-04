@@ -288,6 +288,10 @@ def queryNextExerciseWords(user, bookName, language, source, n=2):
     customDefinition = [getWordAnnotation(user, word, Annotation.definition) for word in prediction.word]
     data["customDefinition"] = customDefinition
     
+    # Query custom definition
+    note = [getWordAnnotation(user, word, Annotation.note) for word in prediction.word]
+    data["note"] = note
+    
     # Query soundmarks
     soundmarks = [getSoundmarks(word, ['US', 'UK']) for word in prediction.word]
     US = [s['US'] if 'US' in s else None for s in soundmarks]
