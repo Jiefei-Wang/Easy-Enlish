@@ -8,7 +8,7 @@ from dateutil.parser import parse
 from .models import *
 from .database_api import *
 from .keys import *
-from .dictionary_api import updateWordDatabase, ecdict, loadPronounce
+from .dictionary_api import updateWordDatabase, loadPronounce
 from .prediction import predictNextWordsLogistic
 
 #####################################################

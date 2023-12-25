@@ -15,12 +15,12 @@ from PyDictionary import PyDictionary
 
 from .keys import *
 from .database_api import *
-import ecdict.stardict as stardict
+#import ecdict.stardict as stardict
 
 ## constrain language
 langid.set_languages(['en','zh'])
 
-ecdict = stardict.open_dict('./ecdict/stardict.db')
+#ecdict = stardict.open_dict('./ecdict/stardict.db')
 
 modelVersion = 1
 retryInterval = 3
