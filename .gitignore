@@ -1,6 +1,5 @@
-secret_key.txt
-playground.py
-*.sqlite3
-node_modules/
-pronunciation/
+test
+data/pronunciation/
 .env
+data/ecdict
+data/dictionary
